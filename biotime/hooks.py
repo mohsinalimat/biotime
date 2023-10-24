@@ -106,6 +106,14 @@ app_license = "MIT"
 # Scheduled Tasks
 # ---------------
 
+scheduler_events = {
+    "cron": {
+        "0 23 * * *": [
+            "biotime.api.fetch_transactions"
+        ],
+    },
+}
+
 # scheduler_events = {
 #	"all": [
 #		"biotime.tasks.all"
