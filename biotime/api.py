@@ -12,8 +12,21 @@ from datetime import datetime
 
 def get_tokan():
     doc = frappe.get_single("BioTime Setting")
-    tokan = doc.get_password('tokan') if doc.tokan else ""
-    return tokan
+    url = doc.url + "/jwt-api-token-auth/"
+    headers = {
+        "Content-Type": "application/json",
+    }
+    doc = frappe.get_single("BioTime Setting")
+    data = {
+        "username": doc.user_name ,
+        "password": doc.get_password('password')
+    }
+
+    response = requests.post(url, data=json.dumps(data), headers=headers)
+    # print(response.text) 
+    # tokan = doc.get_password('tokan') if doc.tokan else ""
+    # return tokan
+    return response.text[10: len(response.text) - 2]
 
 
 def get_url():
@@ -43,12 +56,11 @@ def fetch_transactions():
     count = 0
     while is_next_page:
         try:
-            
             response = requests.request("GET", url, headers=headers)
             if response.ok:
                 res = json.loads(response.text)
                 transactions = res.get("data")
-                print(res)
+                # print(res)
                 count = res.get("count")
                 if res.get("next"):
                     is_next_page = False
@@ -113,8 +125,14 @@ def handel_transactions(transactions):
 
     msg = "Try to Create {} Employee Checkin: <br> {} already Exists In System  <br> {} Successfully Created ,<br> {} Failed <hr> for more details about Failed Employee Checkin Docs review errors log".format(
         len(transactions), exists_trans, created, errors)
-
-    frappe.msgprint( msg)
+    if created >0:
+        shift_list =  frappe.get_list("Shift Type" , filters = {"enable_auto_attendance" : 1})
+        for shift in shift_list:
+            shift_doc = frappe.get_doc("Shift Type" , shift)
+            shift_doc.last_sync_of_checkin = datetime.now()
+            shift_doc.save()
+            frappe.db.commit()
+    frappe.publish_realtime('msgprint', msg)
     
 def create_employee_checkin(transaction):
     res = False

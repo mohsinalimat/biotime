@@ -9,9 +9,10 @@
   "biometric_server_date_section",
   "url",
   "column_break_tynff",
-  "tokan",
   "actions_section",
-  "fetch_transactions"
+  "fetch_transactions",
+  "user_name",
+  "password"
  ],
  "fields": [
   {
@@ -41,17 +42,22 @@
    "label": "Fetch Transactions"
   },
   {
-   "fieldname": "tokan",
+   "fieldname": "user_name",
+   "fieldtype": "Data",
+   "label": "User Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "password",
    "fieldtype": "Password",
-   "label": "Tokan",
-   "length": 300,
+   "label": "Password",
    "reqd": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-10-19 14:59:57.577514",
+ "modified": "2024-02-08 13:35:46.477720",
  "modified_by": "Administrator",
  "module": "BioTime Integration",
  "name": "BioTime Setting",
