@@ -12,5 +12,17 @@ frappe.ui.form.on('BioTime Setting', {
 				}
 			},
 		});
+	},
+
+	fetch: function (frm) {
+		frappe.call({
+			method: "enqueue_long_job_fetch",
+			doc: frm.doc,
+			callback: function (r) {
+				if (!r.exc) {
+					console.log("Done !!!!!!!!!!!!!!!!!!!!!");
+				}
+			},
+		});
 	}
 });

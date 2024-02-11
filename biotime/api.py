@@ -21,12 +21,20 @@ def get_tokan():
         "username": doc.user_name ,
         "password": doc.get_password('password')
     }
-
-    response = requests.post(url, data=json.dumps(data), headers=headers)
+    try:
+        response = requests.post(url, data=json.dumps(data), headers=headers)
+        return response.text[10: len(response.text) - 2]
     # print(response.text) 
     # tokan = doc.get_password('tokan') if doc.tokan else ""
     # return tokan
-    return response.text[10: len(response.text) - 2]
+    except Exception as e:
+        frappe.log_error(
+            message=e, title="Failed while Connect to biotime serever")
+        frappe.throw(
+            title='Error',
+            msg='Failed while Connect to biotime serever',
+        )
+    
 
 
 def get_url():
@@ -38,7 +46,7 @@ def get_url():
 def fetch_transactions():
     tokan = get_tokan()
     main_url = get_url()
-
+    
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'JWT ' + tokan
@@ -190,3 +198,87 @@ def create_employee_checkin(transaction):
             res = False
     return res
 
+# هذا الكود كتب على وجه الاستعجال لحل مشكلة بشكل شريع ,,,,  سيحتاج الكود الى تعديل و تحسين ف المستقبل ليكون اقل في عدد الاسطر و اكثر فاعليى
+# كتب بتاريخ 11 / 02 /2024
+# من قبل م هديل
+# لحل مشكلة في عبور ,,, الشمكلة حدثت قبل تسيلم تعديل الكود الاخير الذي سيكون بدوره مانع لوقوع المشكلة 
+
+@frappe.whitelist()
+def fetch():
+    tokan = get_tokan()
+    main_url = get_url()
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'JWT ' + tokan
+    }
+
+    transactions_list = []
+    date = frappe.get_single("BioTime Setting").date
+    print("DDDDDDDDDDDDDDDDDDDD" , date)
+    start_date = get_first_day(date).strftime("%Y-%m-%d %H:%M:%S")
+    end_date = get_last_day(date).strftime("%Y-%m-%d %H:%M:%S")
+
+    is_next_page = True
+    url = f"{main_url}/iclock/api/transactions/?start_time={start_date}&end_time={end_date}"
+
+    progress_count = 0
+    count = 0
+    while is_next_page:
+        try:
+            response = requests.request("GET", url, headers=headers)
+            if response.ok:
+                res = json.loads(response.text)
+                transactions = res.get("data")
+                # print(res)
+                count = res.get("count")
+                if not res.get("next"):
+                    is_next_page = False
+                else:
+                    for transaction in transactions:
+                        transactions_list.append(transaction)
+                url = res.get("next")
+            else:
+                is_next_page = False
+                frappe.log_error(message=res.get("detail", ""),
+                                 title=f"Failed to Get Transactions")
+
+        except Exception as e:
+            is_next_page = False
+            frappe.log_error(
+                message=e, title="Failed while fetching transactions")
+            frappe.publish_realtime("msgprint", "Can't Fetch Transactions please check your tokan or url <hr> For more details review error log")
+    
+    is_next_page = True
+    while is_next_page:
+
+        try:
+            response = requests.request("GET", url, headers=headers)
+            if response.ok:
+                res = json.loads(response.text)
+                transactions = res.get("data")
+                # print(res)
+                count = res.get("count")
+                if res.get("next"):
+                    is_next_page = False
+                else:
+                    for transaction in transactions:
+                        transactions_list.append(transaction)
+                url = res.get("next")
+            else:
+                is_next_page = False
+                frappe.log_error(message=res.get("detail", ""),
+                                 title=f"Failed to Get Transactions")
+
+        except Exception as e:
+            is_next_page = False
+            frappe.log_error(
+                message=e, title="Failed while fetching transactions")
+            frappe.publish_realtime("msgprint", "Can't Fetch Transactions please check your tokan or url <hr> For more details review error log")
+
+        progress_count += 10
+        publish_progress(progress_count*100/int(count + 1),
+                         title="Fetching Transactions...")
+    print(len(transactions_list))
+    if len(transactions_list):
+        handel_transactions(transactions_list)

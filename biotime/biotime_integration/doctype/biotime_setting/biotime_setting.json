@@ -12,7 +12,10 @@
   "actions_section",
   "fetch_transactions",
   "user_name",
-  "password"
+  "password",
+  "fetch_data_for_a_custom_date_section",
+  "date",
+  "fetch"
  ],
  "fields": [
   {
@@ -52,12 +55,27 @@
    "fieldtype": "Password",
    "label": "Password",
    "reqd": 1
+  },
+  {
+   "fieldname": "fetch_data_for_a_custom_date_section",
+   "fieldtype": "Section Break",
+   "label": "Fetch data for a custom date"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
+  },
+  {
+   "fieldname": "fetch",
+   "fieldtype": "Button",
+   "label": "Fetch Transactions"
   }
  ],
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2024-02-08 13:35:46.477720",
+ "modified": "2024-02-11 12:23:07.760860",
  "modified_by": "Administrator",
  "module": "BioTime Integration",
  "name": "BioTime Setting",
