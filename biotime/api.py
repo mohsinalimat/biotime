@@ -78,6 +78,10 @@ def fetch_transactions():
             frappe.log_error(
                 message=e, title="Failed while fetching transactions")
             frappe.publish_realtime("msgprint", "Can't Fetch Transactions please check your tokan or url <hr> For more details review error log")
+    
+    is_next_page = True
+    while is_next_page:
+
         try:
             response = requests.request("GET", url, headers=headers)
             if response.ok:
