@@ -234,6 +234,32 @@ def fetch():
                 transactions = res.get("data")
                 # print(res)
                 count = res.get("count")
+                if not res.get("next"):
+                    is_next_page = False
+                else:
+                    for transaction in transactions:
+                        transactions_list.append(transaction)
+                url = res.get("next")
+            else:
+                is_next_page = False
+                frappe.log_error(message=res.get("detail", ""),
+                                 title=f"Failed to Get Transactions")
+
+        except Exception as e:
+            is_next_page = False
+            frappe.log_error(
+                message=e, title="Failed while fetching transactions")
+            frappe.publish_realtime("msgprint", "Can't Fetch Transactions please check your tokan or url <hr> For more details review error log")
+    is_next_page = True
+    while is_next_page:
+
+        try:
+            response = requests.request("GET", url, headers=headers)
+            if response.ok:
+                res = json.loads(response.text)
+                transactions = res.get("data")
+                # print(res)
+                count = res.get("count")
                 if res.get("next"):
                     is_next_page = False
                 else:
@@ -251,6 +277,9 @@ def fetch():
                 message=e, title="Failed while fetching transactions")
             frappe.publish_realtime("msgprint", "Can't Fetch Transactions please check your tokan or url <hr> For more details review error log")
 
+        progress_count += 10
+        publish_progress(progress_count*100/int(count + 1),
+                         title="Fetching Transactions...")
         progress_count += 10
         publish_progress(progress_count*100/int(count + 1),
                          title="Fetching Transactions...")
