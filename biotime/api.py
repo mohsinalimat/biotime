@@ -220,7 +220,7 @@ def fetch():
     end_date = get_last_day(date).strftime("%Y-%m-%d %H:%M:%S")
 
     is_next_page = True
-    url = f"{main_url}/iclock/api/transactions/?start_time={date}&end_time={date}"
+    url = f"{main_url}/iclock/api/transactions/?start_time={start_date}&end_time={end_date}"
 
     progress_count = 0
     count = 0
